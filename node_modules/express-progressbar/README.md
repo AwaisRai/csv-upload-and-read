@@ -1,0 +1,89 @@
+# Node Progress Bar
+A simple NodeJs module for sending progress from the server to the client.
+
+## Documentation
+*express-progressbar* has two modes:
+	- [**Handler mode**](#handler-mode): Handles everything: the request and the progress.
+	- [**Request mode**](#request-mode): Allows for more flexibility.
+
+### Handler mode
+**Requires Express**
+
+First you need to import the *Handler* object from *express-progressbar*. This handles setting up the server side page and clientside API.
+
+The imported *Handler* object is a function, so you need to call it. It requires the following arguments:
+
+- **progressFunction**: This function handles sending and stopping the progress. Its argument is a class:
+	- **update**: The function sends a message to the client.
+	- **end**: Closes the connection.
+	**You can also send more data into these functions as a second argument.**
+- **fileLocation**: The path of the file that handles the client side progress event. *Handler* automatically creates a server get handler for this file.
+- **url**: The URL that the user has to type into the address bar. This is the same as you would put into `app.get`
+- **app**: The *Express* function
+- **progressLocation**: The location that you have to go to to receive the progress values. Defaults to *progress*.
+
+You can also pass *fs*, and *path* (in that order) after the required arguments.
+
+The request and response attributes are also available as the second and third arguments in the *progressFunction*.
+
+
+The client file can now require *express-progressbar* like this:
+```JavaScript
+const { Handler } = require('express-progressbar');
+
+Handler(p => {
+	let i = 0;
+
+	const int = setInterval(() => {
+		if (i > 10) {
+			p.close();
+			clearInterval(int);
+		} else {
+			p.update(i / 10 * 100, {
+				isCool: true
+			});
+			i++;
+		}
+	}, 1000);
+}, __dirname + '/index.html', '*', app, 'WebURL' /*, fs, path*/);
+```
+
+The passed object is a function that gets called when the server sends a progress event. This function also returns the EventSource.
+
+Take a look at the example files folder for a better explanation.
+
+### Request mode
+First you need to import the *Progress* object from *express-progressbar*. This is only the *Progress* class. You need to setup the code on the client-side your self (you can take a look at the example on how to do that).
+
+The *Progress* constructor's only argument is the response object.
+The *Progress* class has the following functions:
+- **update** Synonym for *sendProgress*
+- **end/close**: Synonym for *closeConnection*
+- **sendProgress**: ([Number] percentage, [Object] moreData)
+- **closeConnection**: ([Object] moreData)
+- **constructSSE**: ([Express response object] response, [String] id, [String] data) - This function is not necessary to use.
+
+The client file can now require *express-progressbar* like this:
+```JavaScript
+const { Progress } = require('express-progressbar');
+
+app.get('/progress', (request, response) => {
+	const p = new Progress(response);
+
+	let i = 0;
+	const int = setInterval(() => {
+		if (i > 10) {
+			p.close();
+			clearInterval(int);
+		} else {
+			p.update(i / 10 * 100, {
+				isCool: true
+			});
+
+			i++;
+		}
+	}, 1000);
+});
+```
+
+Take a look at the example files folder for a better explanation.

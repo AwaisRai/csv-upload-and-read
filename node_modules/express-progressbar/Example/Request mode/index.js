@@ -1,0 +1,33 @@
+const { Progress } = require('../../Progress.js');
+const express = require('express');
+
+const app = express();
+
+app.get('/progress', (request, response) => {
+	const p = new Progress(response);
+
+	let i = 0;
+	const int = setInterval(() => {
+		if (i > 10) {
+			p.close();
+			clearInterval(int);
+		} else {
+			p.update(i / 10 * 100, {
+				isCool: true
+			});
+
+			i++;
+		}
+	}, 1000);
+});
+
+app.get('/', (request, response) => {
+	response.sendFile(__dirname + '/index.html');
+});
+
+app.listen(8000, err => {
+	if (err)
+		throw err;
+	else
+		console.log('Server running');
+});
