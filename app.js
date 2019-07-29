@@ -22,7 +22,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use(fileUpload());
 app.use(fileUpload({
   useTempFiles : true,
-  tempFileDir : '../tmp/'
+  tempFileDir : path.join(__dirname, 'tmp')
 }));
 
 app.use('/', indexRouter);
